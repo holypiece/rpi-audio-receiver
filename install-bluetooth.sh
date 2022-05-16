@@ -19,6 +19,28 @@ DiscoverableTimeout = 0
 AutoEnable=true
 EOF
 
+# Bluetooth PIN / Password protection
+BT_DEVICE="*"
+BT_PIN="1248"
+BT_SSP_MODE=1
+
+echo
+echo "Exposing Bluetooth without a PIN comes with risks."
+echo "Otherwise, some devices may not be able to pair with a PIN enabled due to incompatibilities."
+echo -n "Do you want to protect Bluetooth pairing with a default PIN? [y/N] "
+
+read REPLY
+if [[ "$REPLY" =~ ^(yes|y|Y)$ ]]
+then
+  BT_SSP_MODE=0;
+  cat <<EOF > /etc/bluetooth/pin.conf
+${BT_DEVICE} ${BT_PIN}
+EOF
+  echo;
+  echo -n "Your Bluetooth PIN is: ${BT_PIN}";
+  echo;
+fi
+
 # Make Bluetooth discoverable after initialisation
 mkdir -p /etc/systemd/system/bthelper@.service.d
 cat <<'EOF' > /etc/systemd/system/bthelper@.service.d/override.conf
@@ -26,7 +48,7 @@ cat <<'EOF' > /etc/systemd/system/bthelper@.service.d/override.conf
 Type=oneshot
 EOF
 
-cat <<'EOF' > /etc/systemd/system/bt-agent@.service
+cat <<EOF > /etc/systemd/system/bt-agent@.service
 [Unit]
 Description=Bluetooth Agent
 Requires=bluetooth.service
@@ -35,8 +57,8 @@ After=bluetooth.service
 [Service]
 ExecStartPre=/usr/bin/bluetoothctl discoverable on
 ExecStartPre=/bin/hciconfig %I piscan
-ExecStartPre=/bin/hciconfig %I sspmode 1
-ExecStart=/usr/bin/bt-agent --capability=NoInputNoOutput
+ExecStartPre=/bin/hciconfig %I sspmode ${BT_SSP_MODE}
+ExecStart=/usr/bin/bt-agent --capability=NoInputNoOutput $(if [[ ${BT_SSP_MODE} == 0 ]]; then echo "--pin /etc/bluetooth/pin.conf"; fi)
 RestartSec=5
 Restart=always
 KillSignal=SIGUSR1
