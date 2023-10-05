@@ -1,12 +1,6 @@
 # Raspberry Pi Audio Receiver
 
-A simple, light weight audio receiver with Bluetooth (A2DP), AirPlay 1, and Spotify Connect.
-
-## ⚠️ A note on Raspberry Pi OS 10 (Legacy)
-
-The current version of Raspberry Pi OS (2022-01-28) is based on Debian 11 (Bullseye). This version does not contain the BlueALSA package (`bluealsa`) anymore. This repository now uses PulseAudio instead of ALSA. This may or may not work on slower devices like Raspberry Pi 1 and Raspberry Pi Zero.
-
-For these devices, you might want to try [HiFiBerryOS](https://github.com/hifiberry/hifiberry-os/) for similar functionality or stick with the `debian-10` branch, which works with the "Raspberry Pi OS (Legacy)".
+A simple, light weight audio receiver with Bluetooth (A2DP), AirPlay 2, and Spotify Connect.
 
 ## Features
 
@@ -15,10 +9,16 @@ Devices like phones, tablets and computers can play audio via this receiver.
 ## Requirements
 
 - A USB Bluetooth dongle (the internal Raspberry Pi Bluetooth chipset turned out as not suited for audio playback and causes all kinds of strange connectivity problems)
-- Raspberry Pi OS Buster Lite (2021-10-30)
+- Raspberry Pi OS 11 Lite
 - Internal audio, HDMI, USB or I2S Audio adapter (tested with [Adafruit USB Audio Adapter](https://www.adafruit.com/product/1475),  [pHAT DAC](https://shop.pimoroni.de/products/phat-dac), and [HifiBerry DAC+](https://www.hifiberry.com/products/dacplus/))
 
 **Again: do not try to use the internal Bluetooth chip, this will only bring you many hours of frustration.**
+
+## ⚠️ A note on Raspberry Pi OS 10 (Legacy)
+
+The current version of Raspberry Pi OS (2022-01-28) is based on Debian 11 (Bullseye). This version does not contain the BlueALSA package (`bluealsa`) anymore. This repository now uses PulseAudio instead of ALSA. This may or may not work on slower devices like Raspberry Pi 1 and Raspberry Pi Zero.
+
+For these devices, you might want to try [HiFiBerryOS](https://github.com/hifiberry/hifiberry-os/) for similar functionality or stick with the `debian-10` branch, which works with the "Raspberry Pi OS (Legacy)".
 
 ## Installation
 
@@ -31,6 +31,8 @@ The installation script asks whether to install each component.
     cd rpi-audio-receiver-main
     sudo ./install.sh
 
+    reboot
+
 ### Basic setup
 
 Lets you choose the hostname and the visible device name ("pretty hostname") which is displayed as Bluetooth name, in AirPlay clients and in Spotify.
@@ -39,9 +41,19 @@ Lets you choose the hostname and the visible device name ("pretty hostname") whi
 
 Sets up Bluetooth, adds a simple agent that accepts every connection, and enables audio playback through PulseAudio. A udev script is installed that disables discoverability while connected.
 
-### AirPlay 1
+### Bluetooth Configuration
+```
+sudo bluetoothctl
+power on
+agent on
+# Now search for available bluetooth devices from your device
+# Once paired note down the MAC address of your device 
+trust 00:00:00:00:00:00 # Put device MAC address here so after reboot it can automatically re-connect again
+```
 
-Installs [Shairport Sync](https://github.com/mikebrady/shairport-sync) AirPlay Audio Receiver.
+### AirPlay 2
+
+Installs [Shairport Sync](https://github.com/mikebrady/shairport-sync) AirPlay 2 Audio Receiver.
 
 ### Spotify Connect
 
